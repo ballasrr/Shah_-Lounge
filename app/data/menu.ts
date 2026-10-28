@@ -23,6 +23,18 @@ export interface MenuTab {
 
 export const menu: MenuTab[] = [
   {
+    id: 'hookah',
+    label: 'Кальян',
+    groups: [
+      {
+        title: 'Кальян',
+        items: [
+          { name: 'Кальян', price: 1200, note: 'любой на выбор' }
+        ]
+      }
+    ]
+  },
+  {
     id: 'coffee',
     label: 'Кофе',
     groups: [
