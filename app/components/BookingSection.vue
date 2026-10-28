@@ -61,7 +61,7 @@ async function copyPhone() {
           <div class="eyebrow">Телефон для брони</div>
           <div
             id="booking-phone"
-            class="mt-3.5 mb-5 font-display text-[clamp(2.4rem,6vw,3.4rem)] leading-none font-bold whitespace-nowrap select-all tabular-nums phone:text-[clamp(2rem,10vw,2.6rem)]"
+            class="mt-3.5 mb-5 font-display text-[clamp(2.4rem,6vw,3.4rem)] leading-none font-bold whitespace-nowrap select-all phone:text-[clamp(2rem,10vw,2.6rem)]"
           >{{ venue.phone.display }}</div>
           <div class="flex flex-wrap gap-2.5 phone:grid phone:grid-cols-2">
             <UButton :href="`tel:${venue.phone.tel}`" size="lg" icon="i-lucide-phone" label="Позвонить" />
