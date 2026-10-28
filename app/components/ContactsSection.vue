@@ -60,6 +60,8 @@ const socials = [
           </div>
         </div>
       </div>
+
+      <TwoGisMap class="mt-10 tablet:mt-8" />
     </div>
   </section>
 </template>

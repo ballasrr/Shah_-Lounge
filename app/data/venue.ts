@@ -27,6 +27,7 @@ export const venue = {
 
   links: {
     twoGis: 'https://2gis.ru/makhachkala/firm/70000001118347984',
+    twoGisId: '70000001118347984',
     yandexMaps: 'https://yandex.ru/maps/?text=%D0%9C%D0%B0%D1%85%D0%B0%D1%87%D0%BA%D0%B0%D0%BB%D0%B0%2C%20%D0%93%D0%B0%D0%B7%D0%BE%D0%BF%D1%80%D0%BE%D0%B2%D0%BE%D0%B4%D0%BD%D0%B0%D1%8F%206%D0%91',
     instagram: 'https://www.instagram.com/shah.hookah/',
     instagramHandle: '@shah.hookah'
