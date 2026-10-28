@@ -64,8 +64,7 @@ onBeforeUnmount(() => io?.disconnect())
         :ui="{
           root: 'w-max',
           list: 'bg-transparent p-0 gap-2 w-max',
-          indicator: 'rounded-full',
-          trigger: 'rounded-full px-[18px] py-2 text-[.88rem] font-bold shrink-0 grow-0 border border-line data-[state=active]:border-brand data-[state=inactive]:text-mist hover:data-[state=inactive]:text-cream'
+          trigger: 'rounded-full px-[18px] py-2 text-[.88rem] font-bold shrink-0 grow-0 border border-line before:hidden data-[state=active]:border-brand data-[state=active]:bg-brand data-[state=inactive]:text-mist hover:data-[state=inactive]:text-cream'
         }"
       />
     </div>
