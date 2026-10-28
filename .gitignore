@@ -8,3 +8,6 @@ dist
 .env
 *.log
 deploy/.domain
+__pycache__
+.venv
+.pytest_cache
