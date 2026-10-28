@@ -1,0 +1,32 @@
+# Весь проект одной командой:  docker compose up -d --build
+# Сайт: http://localhost:8080  ·  API: http://localhost:8080/api/tables
+#
+# Порт и адрес сайта можно задать в файле .env рядом с этим файлом:
+#   PORT=80
+#   SITE_URL=https://shah-lounge.ru
+
+services:
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file:
+      - path: backend/.env   # ключ iiko; нет файла — бэкенд работает на тестовых данных
+        required: false
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  web:
+    build:
+      context: .
+      args:
+        NUXT_SITE_URL: ${SITE_URL:-http://localhost:8080}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_healthy

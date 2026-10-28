@@ -5,7 +5,29 @@
 Стек: Nuxt 4, Vue 3, TypeScript, Nuxt UI, Nuxt Image, sitemap, robots и Schema.org для SEO.
 Сайт собирается в статический HTML (`nuxt generate`), поэтому поисковики получают готовую страницу, а на сервере хватает nginx.
 
-## Запуск у себя
+## Запуск в Docker — одной командой
+
+Нужен только Docker (на Windows и Mac — Docker Desktop).
+
+```bash
+docker compose up -d --build
+```
+
+- сайт: http://localhost:8080
+- API бэкенда: http://localhost:8080/api/tables, описание — http://localhost:8080/api/docs
+
+Поднимаются два контейнера: `web` (сайт собирается в статику, nginx отдаёт её и передаёт `/api` дальше) и `api` (бэкенд на Python, см. `backend/README.md`).
+Ключ iiko кладётся в `backend/.env`; без него бэкенд отдаёт тестовые данные.
+Порт и адрес сайта меняются в `.env` рядом с `docker-compose.yml`: `PORT=80`, `SITE_URL=https://shah-lounge.ru`.
+
+```bash
+docker compose logs -f   # логи
+docker compose down      # остановить
+```
+
+После изменений в коде — снова `docker compose up -d --build`.
+
+## Запуск для разработки
 
 Нужен Node.js 20 или новее.
 

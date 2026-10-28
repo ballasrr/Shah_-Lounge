@@ -1,0 +1,15 @@
+.git
+.claude
+node_modules
+.nuxt
+.output
+.data
+.nitro
+.cache
+dist
+.env
+*.log
+backend/.venv
+backend/.env
+**/__pycache__
+**/.pytest_cache
