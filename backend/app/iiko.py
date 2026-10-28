@@ -1,5 +1,7 @@
 # Клиент iikoCloud API: https://api-ru.iiko.services/docs
-# Все методы — POST с JSON, авторизация токеном, который выдаётся по apiLogin и живёт около часа.
+# Все методы — POST с JSON, авторизация токеном, который живёт около часа.
+# Токен выдаётся по ключу из iikoWeb. Новые ключи принимаются только вместе с appId и clientSecret
+# приложения с портала разработчиков iiko (/api/v2/access_token), старые — по одному ключу (/api/1).
 import time
 from datetime import datetime
 
@@ -19,8 +21,10 @@ def iiko_time(dt: datetime) -> str:
 
 
 class IikoClient:
-    def __init__(self, api_login: str, http: httpx.AsyncClient | None = None):
+    def __init__(self, api_login: str, http: httpx.AsyncClient | None = None, app_id: str = "", client_secret: str = ""):
         self.api_login = api_login
+        self.app_id = app_id
+        self.client_secret = client_secret
         self.http = http or httpx.AsyncClient(base_url=BASE_URL, timeout=20)
         self._token = ""
         self._token_at = 0.0
@@ -30,7 +34,15 @@ class IikoClient:
 
     async def _auth(self) -> str:
         if not self._token or time.monotonic() - self._token_at > TOKEN_TTL:
-            r = await self.http.post("/api/1/access_token", json={"apiLogin": self.api_login})
+            if self.app_id and self.client_secret:
+                r = await self.http.post("/api/v2/access_token", json={
+                    "apiKey": self.api_login, "appId": self.app_id, "clientSecret": self.client_secret,
+                })
+            else:
+                r = await self.http.post("/api/1/access_token", json={"apiLogin": self.api_login})
+            if r.status_code == 403 and "/api/v2/access_token" in r.text:
+                raise IikoError("Этому ключу нужен вход через v2: задай IIKO_APP_ID и IIKO_CLIENT_SECRET "
+                                "приложения с портала разработчиков iiko (https://public-api.iikoweb.ru/portal)")
             if r.status_code != 200:
                 raise IikoError(f"iiko не выдал токен: {r.status_code} {r.text[:200]}")
             self._token = r.json()["token"]

@@ -86,7 +86,7 @@ def demo_tables(now: datetime) -> list[Table]:
 class TablesService:
     def __init__(self, settings: Settings, client: IikoClient | None = None):
         self.s = settings
-        self.client = client or (None if settings.demo else IikoClient(settings.api_login))
+        self.client = client or (None if settings.demo else IikoClient(settings.api_login, app_id=settings.app_id, client_secret=settings.client_secret))
         self._lock = asyncio.Lock()
         self._cache: dict | None = None
         self._cache_at = 0.0

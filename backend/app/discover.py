@@ -14,7 +14,7 @@ async def main() -> None:
     if s.demo:
         print("IIKO_API_LOGIN не задан в backend/.env — проверять нечего.")
         return
-    client = IikoClient(s.api_login)
+    client = IikoClient(s.api_login, app_id=s.app_id, client_secret=s.client_secret)
     try:
         orgs = await client.organizations()
         print(f"Организаций: {len(orgs)}")

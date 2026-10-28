@@ -24,7 +24,7 @@ SECTIONS = [{
 
 
 def settings(**kw) -> Settings:
-    base = dict(api_login="", organization_id="", terminal_group_id="", tz=ZoneInfo("Europe/Moscow"),
+    base = dict(api_login="", app_id="", client_secret="", organization_id="", terminal_group_id="", tz=ZoneInfo("Europe/Moscow"),
                 reserve_ahead_minutes=120, cache_seconds=30, cors_origins=[])
     return Settings(**{**base, **kw})
 
@@ -77,6 +77,9 @@ def fake_iiko(calls: list[str], fail: bool = False) -> httpx.AsyncClient:
             case "/api/1/access_token":
                 assert body == {"apiLogin": "key"}
                 return httpx.Response(200, json={"token": "tok"})
+            case "/api/v2/access_token":
+                assert body == {"apiKey": "key", "appId": "app", "clientSecret": "secret"}
+                return httpx.Response(200, json={"token": "tok"})
             case "/api/1/organizations":
                 return httpx.Response(200, json={"organizations": [{"id": "org", "name": "Шах"}]})
             case "/api/1/terminal_groups":
@@ -123,3 +126,16 @@ def test_service_keeps_last_data_when_iiko_fails():
     ok, again = asyncio.run(run())
     assert again["stale"] is True
     assert again["tables"] == ok["tables"]
+
+
+def test_v2_auth_with_app_credentials():
+    async def run():
+        calls: list[str] = []
+        client = IikoClient("key", fake_iiko(calls), app_id="app", client_secret="secret")
+        orgs = await client.organizations()
+        await client.close()
+        return orgs, calls
+
+    orgs, calls = asyncio.run(run())
+    assert orgs[0]["id"] == "org"
+    assert "/api/v2/access_token" in calls and "/api/1/access_token" not in calls
