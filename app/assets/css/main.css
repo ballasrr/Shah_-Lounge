@@ -18,7 +18,8 @@
   --color-mist: #a6989a;      /* второстепенный текст */
   --color-brand: #e3000f;     /* фирменный красный из логотипа */
   --color-brand-hi: #ff2b36;  /* красный для мелкого текста и ховеров */
-  --color-live: #55c27a;      /* индикатор «открыто» */
+  --color-live: #55c27a;      /* индикатор «открыто», свободный стол */
+  --color-hold: #e9a23b;      /* забронированный стол */
 
   --font-display: "Yanone Kaffeesatz", "Arial Narrow", "Roboto Condensed", sans-serif;
   --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;

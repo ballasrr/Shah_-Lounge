@@ -51,6 +51,11 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // при разработке /api уходит в бэкенд на Python (cd backend && uvicorn app.main:app --port 8000);
+    // в Docker и на сервере это делает nginx
+    devProxy: {
+      '/api': { target: 'http://127.0.0.1:8000/api', changeOrigin: true }
+    },
     prerender: {
       routes: ['/'],
       crawlLinks: true

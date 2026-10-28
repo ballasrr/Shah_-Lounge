@@ -31,6 +31,15 @@ const waLink = computed(() => {
   return `https://wa.me/${venue.phone.whatsapp}?text=${encodeURIComponent(lines.join('\n'))}`
 })
 
+// гость выбрал свободный стол на схеме — подставляем его в заявку
+const formEl = ref<HTMLFormElement>()
+function pickTable(t: { number: number; seats: number }) {
+  form.note = `Стол №${t.number}`
+  if (form.guests > t.seats) form.guests = t.seats
+  formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  toast.add({ title: `Стол №${t.number} добавлен в заявку`, icon: 'i-lucide-check' })
+}
+
 async function copyPhone() {
   try {
     await navigator.clipboard.writeText(venue.phone.display)
@@ -57,6 +66,8 @@ async function copyPhone() {
       </SectionHead>
 
       <div class="grid grid-cols-[1fr_1.1fr] gap-5 tablet:grid-cols-1">
+        <TablesNow class="col-span-full" @pick="pickTable" />
+
         <div :class="card">
           <div class="eyebrow">Телефон для брони</div>
           <div
@@ -71,7 +82,7 @@ async function copyPhone() {
           <p class="mt-[18px] mb-0 text-[.9rem] text-mist">На вечер пятницы и выходных лучше бронировать заранее.</p>
         </div>
 
-        <form :class="[card, 'grid grid-cols-2 content-start gap-3.5 tiny:grid-cols-1']" @submit.prevent>
+        <form ref="formEl" :class="[card,'grid grid-cols-2 content-start gap-3.5 tiny:grid-cols-1']" @submit.prevent>
           <UFormField label="Имя" class="col-span-full">
             <UInput v-model="form.name" placeholder="Как к вам обращаться" autocomplete="name" size="lg" class="w-full" />
           </UFormField>
