@@ -12,16 +12,11 @@ const sizes = (s?: string | [string, string]) => (s ? (Array.isArray(s) ? s : [s
 </script>
 
 <template>
-  <section id="menu" class="section">
-    <div class="wrap">
-      <div class="head">
-        <div>
-          <div class="eyebrow">Меню</div>
-          <h2>Что подаём</h2>
-        </div>
-      </div>
+  <section id="menu" class="scroll-mt-[72px] py-[clamp(56px,9vw,108px)] phone:py-14">
+    <div class="shell">
+      <SectionHead eyebrow="Меню" title="Что подаём" />
 
-      <div class="tabs-scroll">
+      <div class="mb-[30px] overflow-x-auto scrollbar-none phone:bleed-x">
         <UTabs
           v-model="active"
           :items="tabs"
@@ -32,24 +27,35 @@ const sizes = (s?: string | [string, string]) => (s ? (Array.isArray(s) ? s : [s
             root: 'w-max',
             list: 'bg-transparent p-0 gap-2 w-max',
             indicator: 'rounded-full',
-            trigger: 'rounded-full px-[18px] py-[10px] text-[.92rem] font-bold shrink-0 grow-0 border border-[var(--line)] data-[state=active]:border-[var(--red)] data-[state=inactive]:text-[var(--muted)] hover:data-[state=inactive]:text-[var(--fg)]'
+            trigger: 'rounded-full px-[18px] py-[10px] text-[.92rem] font-bold shrink-0 grow-0 border border-line data-[state=active]:border-brand data-[state=inactive]:text-mist hover:data-[state=inactive]:text-cream'
           }"
         />
       </div>
 
-      <Transition name="swap" mode="out-in">
-        <div :key="active" class="menu">
-          <section v-for="(g, gi) in current.groups" :key="g.title" class="group" :style="{ animationDelay: `${gi * 50}ms` }">
-            <h3>{{ g.title }}</h3>
-            <div v-if="g.sizes" class="sizes">
+      <Transition
+        mode="out-in"
+        enter-active-class="transition-opacity duration-150"
+        leave-active-class="transition-opacity duration-150"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div :key="active" class="columns-2 gap-x-16 phone:columns-1">
+          <section
+            v-for="(g, gi) in current.groups"
+            :key="g.title"
+            class="mb-9 animate-fade-in break-inside-avoid motion-reduce:animate-none"
+            :style="{ animationDelay: `${gi * 50}ms` }"
+          >
+            <h3 class="mb-2.5 flex items-baseline gap-3 text-[1.9rem] leading-none uppercase after:h-0.5 after:flex-1 after:-translate-y-1.5 after:bg-brand after:opacity-85 after:content-[''] phone:text-[1.7rem]">{{ g.title }}</h3>
+            <div v-if="g.sizes" class="grid grid-cols-[1fr_auto] items-baseline gap-3 pt-0.5 pb-1 text-[.78rem] font-bold tracking-[.06em] text-mist uppercase">
               <span />
-              <span class="pr"><span v-for="s in sizes(g.sizes)" :key="s">{{ s }}</span></span>
+              <span class="flex gap-3.5 font-bold whitespace-nowrap tabular-nums"><span v-for="s in sizes(g.sizes)" :key="s" class="min-w-[4.6em] text-right">{{ s }}</span></span>
             </div>
-            <div v-for="it in g.items" :key="it.name" class="line">
-              <div class="n">
-                <span>{{ it.name }}<small v-if="it.note">{{ it.note }}</small></span>
+            <div v-for="it in g.items" :key="it.name" class="grid grid-cols-[1fr_auto] items-baseline gap-3 py-[7px]">
+              <div class="flex min-w-0 items-baseline gap-2.5 after:min-w-3 after:flex-1 after:-translate-y-1 after:border-b after:border-dotted after:border-line after:content-['']">
+                <span class="flex-initial">{{ it.name }}<small v-if="it.note" class="block text-[.8rem] leading-[1.3] text-mist">{{ it.note }}</small></span>
               </div>
-              <span class="pr"><span v-for="(p, i) in prices(it.price)" :key="i">{{ rub(p) }}</span></span>
+              <span class="flex gap-3.5 font-bold whitespace-nowrap tabular-nums"><span v-for="(p, i) in prices(it.price)" :key="i" class="min-w-[4.6em] text-right">{{ rub(p) }}</span></span>
             </div>
           </section>
         </div>
@@ -60,43 +66,3 @@ const sizes = (s?: string | [string, string]) => (s ? (Array.isArray(s) ? s : [s
     </div>
   </section>
 </template>
-
-<style scoped>
-.tabs-scroll { margin-bottom: 30px; overflow-x: auto; scrollbar-width: none; }
-.tabs-scroll::-webkit-scrollbar { display: none; }
-.menu { columns: 2; column-gap: 64px; }
-.group { break-inside: avoid; margin: 0 0 36px; animation: fadeIn .45s both; }
-.group h3 {
-  font-size: 1.9rem;
-  text-transform: uppercase;
-  line-height: 1;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-.group h3::after { content: ""; flex: 1; height: 2px; background: var(--red); opacity: .85; transform: translateY(-6px); }
-.sizes, .line { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 12px; }
-.sizes { color: var(--muted); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; font-weight: 700; padding: 2px 0 4px; }
-.line { padding: 7px 0; }
-.n { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-.n > span { flex: 0 1 auto; }
-.n::after { content: ""; flex: 1; border-bottom: 1px dotted var(--line); transform: translateY(-4px); min-width: 12px; }
-.line small { display: block; color: var(--muted); font-size: .8rem; line-height: 1.3; }
-.pr { display: flex; gap: 14px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.pr span { min-width: 4.6em; text-align: right; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.swap-enter-active, .swap-leave-active { transition: opacity .15s; }
-.swap-enter-from, .swap-leave-to { opacity: 0; }
-
-@media (max-width: 760px) {
-  .menu { columns: 1; }
-  .group h3 { font-size: 1.7rem; }
-  .tabs-scroll {
-    margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r));
-    padding-inline: var(--gutter-l) var(--gutter-r);
-  }
-}
-@media (prefers-reduced-motion: reduce) { .group { animation: none; } }
-</style>

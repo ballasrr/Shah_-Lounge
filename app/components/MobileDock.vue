@@ -6,7 +6,7 @@ const show = ref(false)
 
 function update() {
   const book = document.getElementById('book')
-  const hero = document.querySelector('.hero') as HTMLElement | null
+  const hero = document.getElementById('hero')
   const heroOut = window.scrollY > (hero?.offsetHeight ?? 600) * 0.6
   const r = book?.getBoundingClientRect()
   const inBook = !!r && r.top < innerHeight && r.bottom > 0
@@ -21,32 +21,11 @@ onBeforeUnmount(() => window.removeEventListener('scroll', update))
 </script>
 
 <template>
-  <div class="dock" :class="{ show }">
+  <div
+    class="fixed inset-x-0 bottom-0 z-25 hidden grid-cols-[1fr_1.4fr] gap-2.5 border-t border-line bg-ink/92 pt-2.5 pr-(--gutter-r) pb-[calc(10px+env(safe-area-inset-bottom,0px))] pl-(--gutter-l) backdrop-blur-[10px] transition-transform duration-350 ease-[cubic-bezier(.2,.7,.2,1)] phone:grid"
+    :class="show ? 'translate-y-0' : 'translate-y-[110%]'"
+  >
     <UButton :href="`tel:${venue.phone.tel}`" class="btn-outline" size="lg" icon="i-lucide-phone" label="Позвонить" />
     <UButton to="#book" size="lg" label="Забронировать" />
   </div>
 </template>
-
-<style scoped>
-.dock { display: none; }
-@media (max-width: 760px) {
-  .dock {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr;
-    gap: 10px;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 25;
-    background: rgba(19, 15, 17, .92);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-top: 1px solid var(--line);
-    padding: 10px var(--gutter-r) calc(10px + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
-    transform: translateY(110%);
-    transition: transform .35s cubic-bezier(.2, .7, .2, 1);
-  }
-  .dock.show { transform: none; }
-}
-</style>

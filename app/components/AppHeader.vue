@@ -9,103 +9,37 @@ const links = [
 </script>
 
 <template>
-  <header class="top" :class="{ open }">
-    <div class="wrap bar">
-      <a class="logo" href="#top" aria-label="Шах Lounge — на главную">
+  <header class="sticky top-[env(safe-area-inset-top,0px)] z-20 border-b border-line bg-ink/84 backdrop-blur-[10px]">
+    <div class="shell flex items-center gap-6 py-3 phone:gap-3">
+      <a class="flex items-center [&_svg]:block [&_svg]:h-[34px] [&_svg]:w-auto" href="#top" aria-label="Шах Lounge — на главную">
         <LogoWide />
       </a>
-      <nav class="links" aria-label="Разделы">
-        <a v-for="l in links" :key="l.to" :href="l.to" @click="open = false">{{ l.label }}</a>
+      <nav
+        class="ml-auto flex gap-6 phone:absolute phone:inset-x-0 phone:top-full phone:m-0 phone:flex-col phone:gap-0 phone:border-b phone:border-line phone:bg-ink phone:pt-1.5 phone:pr-(--gutter-r) phone:pb-3.5 phone:pl-(--gutter-l) phone:transition-[clip-path,visibility] phone:duration-300 phone:ease-[cubic-bezier(.2,.7,.2,1)]"
+        :class="open ? 'phone:[clip-path:inset(0)] phone:visible' : 'phone:[clip-path:inset(0_0_100%_0)] phone:invisible'"
+        aria-label="Разделы"
+      >
+        <a
+          v-for="l in links"
+          :key="l.to"
+          :href="l.to"
+          class="text-[.92rem] font-medium text-mist transition-colors duration-200 hover:text-cream phone:border-b phone:border-line phone:py-2.5 phone:font-display phone:text-[1.9rem] phone:font-bold phone:text-cream phone:uppercase phone:last:border-b-0"
+          @click="open = false"
+        >{{ l.label }}</a>
       </nav>
-      <UButton to="#book" class="book-btn" label="Забронировать" />
+      <UButton to="#book" class="phone:hidden" label="Забронировать" />
       <button
-        class="burger"
+        class="ml-auto hidden size-11 cursor-pointer items-center justify-center rounded-xl border border-line bg-transparent text-cream phone:inline-flex"
         type="button"
         :aria-expanded="open"
         :aria-label="open ? 'Закрыть меню разделов' : 'Открыть меню разделов'"
         @click="open = !open"
       >
-        <i />
+        <i
+          class="relative block h-0.5 w-[18px] rounded-sm bg-current transition-[background-color] duration-250 before:absolute before:top-[-6px] before:left-0 before:block before:h-0.5 before:w-[18px] before:rounded-sm before:bg-current before:transition-transform before:duration-250 before:content-[''] after:absolute after:top-1.5 after:left-0 after:block after:h-0.5 after:w-[18px] after:rounded-sm after:bg-current after:transition-transform after:duration-250 after:content-['']"
+          :class="open ? 'bg-transparent before:translate-y-1.5 before:rotate-45 after:-translate-y-1.5 after:-rotate-45' : ''"
+        />
       </button>
     </div>
   </header>
 </template>
-
-<style scoped>
-.top {
-  position: sticky;
-  top: env(safe-area-inset-top, 0px);
-  z-index: 20;
-  background: rgba(19, 15, 17, .84);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-.bar { display: flex; align-items: center; gap: 24px; padding-block: 12px; }
-.logo { display: flex; align-items: center; }
-.logo :deep(svg) { height: 34px; width: auto; display: block; }
-.links { display: flex; gap: 24px; margin-left: auto; }
-.links a { text-decoration: none; color: var(--muted); font-size: .92rem; font-weight: 500; transition: color .2s; }
-.links a:hover { color: var(--fg); }
-
-.burger {
-  display: none;
-  margin-left: auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--fg);
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
-}
-.burger i, .burger i::before, .burger i::after {
-  display: block;
-  width: 18px;
-  height: 2px;
-  background: currentColor;
-  border-radius: 2px;
-  position: relative;
-  transition: transform .25s, background .25s;
-}
-.burger i::before, .burger i::after { content: ""; position: absolute; left: 0; }
-.burger i::before { top: -6px; }
-.burger i::after { top: 6px; }
-.open .burger i { background: transparent; }
-.open .burger i::before { transform: translateY(6px) rotate(45deg); }
-.open .burger i::after { transform: translateY(-6px) rotate(-45deg); }
-
-@media (max-width: 760px) {
-  .bar { gap: 12px; }
-  .burger { display: inline-flex; }
-  .book-btn { display: none; }
-  .links {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    flex-direction: column;
-    gap: 0;
-    margin: 0;
-    background: var(--ink);
-    border-bottom: 1px solid var(--line);
-    padding: 6px var(--gutter-r) 14px var(--gutter-l);
-    clip-path: inset(0 0 100% 0);
-    visibility: hidden;
-    transition: clip-path .3s cubic-bezier(.2, .7, .2, 1), visibility .3s;
-  }
-  .open .links { clip-path: inset(0 0 0 0); visibility: visible; }
-  .links a {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: 1.9rem;
-    text-transform: uppercase;
-    color: var(--fg);
-    padding: 10px 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .links a:last-child { border-bottom: 0; }
-}
-</style>

@@ -177,16 +177,7 @@ defineExpose({ el: wrap })
 </script>
 
 <template>
-  <div ref="wrap" class="logo-neon">
-    <canvas ref="canvas" role="img" aria-label="Логотип Шах — кофе-бар, hookah bar" />
+  <div ref="wrap" class="relative aspect-[4374.8/6319.1] w-full">
+    <canvas ref="canvas" class="block" role="img" aria-label="Логотип Шах — кофе-бар, hookah bar" />
   </div>
 </template>
-
-<style scoped>
-.logo-neon {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 4374.8 / 6319.1;
-}
-canvas { display: block; }
-</style>

@@ -7,6 +7,9 @@ const pages = [
   { src: '/img/menu-1.jpg', alt: 'Меню Шах: чаи, лимонады, молочные коктейли, напитки' }
 ]
 
+// страница книжки; затемнение при перелистывании рисует ::after
+const sheet = "absolute inset-0 will-change-transform [transform-style:preserve-3d] after:pointer-events-none after:absolute after:inset-0 after:rounded-[10px] after:bg-[linear-gradient(90deg,rgba(0,0,0,.7),rgba(0,0,0,.15)_60%,rgba(255,255,255,.08))] after:opacity-0 after:content-['']"
+
 const page = ref(0)
 const leaving = ref<{ src: string; alt: string; dir: 1 | -1 } | null>(null)
 const busy = computed(() => leaving.value !== null)
@@ -53,74 +56,44 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
     :ui="{ content: 'bg-[rgba(10,8,9,.96)]', header: 'sr-only', body: 'p-0 sm:p-0' }"
   >
     <template #body>
-      <div class="book">
-        <UButton class="close" icon="i-lucide-x" color="neutral" variant="outline" square aria-label="Закрыть меню" @click="open = false" />
-        <div class="stage" @click="onStage" @touchstart.passive="touchStart" @touchend="touchEnd">
-          <div :key="`p${page}`" class="sheet" :class="{ rise: busy }">
-            <img :src="pages[page]!.src" :alt="pages[page]!.alt">
+      <div class="relative flex h-full min-h-dvh flex-col items-center justify-center gap-[18px] pt-[calc(64px+env(safe-area-inset-top,0px))] pr-(--gutter-r) pb-[calc(20px+env(safe-area-inset-bottom,0px))] pl-(--gutter-l)">
+        <UButton
+          class="absolute top-[calc(14px+env(safe-area-inset-top,0px))] right-[calc(14px+env(safe-area-inset-right,0px))] rounded-full"
+          icon="i-lucide-x"
+          color="neutral"
+          variant="outline"
+          square
+          aria-label="Закрыть меню"
+          @click="open = false"
+        />
+        <div
+          class="relative aspect-[1600/1143] max-h-[calc(100dvh-190px)] w-[min(1100px,100%)] cursor-pointer [perspective:2200px]"
+          @click="onStage"
+          @touchstart.passive="touchStart"
+          @touchend="touchEnd"
+        >
+          <div :key="`p${page}`" :class="[sheet, busy && 'animate-page-in motion-reduce:animate-none']">
+            <img class="block size-full rounded-[10px] object-contain shadow-[0_30px_80px_rgba(0,0,0,.6)]" :src="pages[page]!.src" :alt="pages[page]!.alt">
           </div>
           <div
             v-if="leaving"
-            class="sheet top"
-            :class="leaving.dir > 0 ? 'turn-next' : 'turn-prev'"
+            :class="[sheet, 'z-2 after:animate-shade motion-reduce:animate-none motion-reduce:after:animate-none', leaving.dir > 0 ? 'origin-left animate-turn-next' : 'origin-right animate-turn-prev']"
             @animationend.self="leaving = null"
           >
-            <img :src="leaving.src" alt="">
+            <img class="block size-full rounded-[10px] object-contain shadow-[0_30px_80px_rgba(0,0,0,.6)]" :src="leaving.src" alt="">
           </div>
         </div>
-        <div class="bar">
+        <div class="flex items-center gap-3.5">
           <UButton class="btn-outline" icon="i-lucide-chevron-left" :disabled="page === 0" aria-label="Предыдущая страница" @click="turn(-1)">
-            <span class="hide-sm">Назад</span>
+            <span class="max-[560px]:hidden">Назад</span>
           </UButton>
-          <div class="count">{{ page + 1 }} / {{ pages.length }}</div>
+          <div class="min-w-[4.5em] text-center font-bold text-mist tabular-nums">{{ page + 1 }} / {{ pages.length }}</div>
           <UButton class="btn-outline" trailing-icon="i-lucide-chevron-right" :disabled="page === pages.length - 1" aria-label="Следующая страница" @click="turn(1)">
-            <span class="hide-sm">Перелистнуть</span>
+            <span class="max-[560px]:hidden">Перелистнуть</span>
           </UButton>
         </div>
-        <p class="hint">Листайте стрелками или свайпом</p>
+        <p class="m-0 text-[.82rem] text-mist">Листайте стрелками или свайпом</p>
       </div>
     </template>
   </UModal>
 </template>
-
-<style scoped>
-.book {
-  position: relative;
-  height: 100%;
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  padding: calc(64px + env(safe-area-inset-top, 0px)) var(--gutter-r) calc(20px + env(safe-area-inset-bottom, 0px)) var(--gutter-l);
-}
-.close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: calc(14px + env(safe-area-inset-right, 0px)); border-radius: 999px; }
-.stage { position: relative; width: min(1100px, 100%); aspect-ratio: 1600 / 1143; max-height: calc(100dvh - 190px); perspective: 2200px; cursor: pointer; }
-.sheet { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; }
-.sheet img { width: 100%; height: 100%; object-fit: contain; display: block; border-radius: 10px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
-.sheet::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(90deg, rgba(0, 0, 0, .7), rgba(0, 0, 0, .15) 60%, rgba(255, 255, 255, .08));
-}
-.sheet.top { z-index: 2; }
-.turn-next { transform-origin: 0% 50%; animation: turnNext .42s cubic-bezier(.6, 0, .3, 1) forwards; }
-.turn-prev { transform-origin: 100% 50%; animation: turnPrev .42s cubic-bezier(.6, 0, .3, 1) forwards; }
-.turn-next::after, .turn-prev::after { animation: shade .42s ease-in forwards; }
-.rise { animation: rise2 .42s cubic-bezier(.2, .8, .2, 1) both; }
-@keyframes turnNext { 0% { transform: none; } 35% { transform: rotateY(-25deg) skewY(1.5deg) scale(1.02); } 100% { transform: rotateY(-120deg) translateX(-6%) scale(.96); opacity: 0; } }
-@keyframes turnPrev { 0% { transform: none; } 35% { transform: rotateY(25deg) skewY(-1.5deg) scale(1.02); } 100% { transform: rotateY(120deg) translateX(6%) scale(.96); opacity: 0; } }
-@keyframes shade { to { opacity: 1; } }
-@keyframes rise2 { from { transform: scale(.94); filter: brightness(.45); } to { transform: none; filter: none; } }
-
-.bar { display: flex; align-items: center; gap: 14px; }
-.count { min-width: 4.5em; text-align: center; color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
-.hint { color: var(--muted); font-size: .82rem; margin: 0; }
-@media (max-width: 560px) { .hide-sm { display: none; } }
-@media (prefers-reduced-motion: reduce) { .turn-next, .turn-prev, .rise, .sheet::after { animation: none !important; } }
-</style>

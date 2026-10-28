@@ -1,12 +1,13 @@
 <script setup lang="ts">
-interface Zone { id: string; src: string; title: string; text: string; alt: string; w: number; h: number }
+// cell — место в сетке, pos — какую часть фото показывать, h3 — размер заголовка
+interface Zone { id: string; src: string; title: string; text: string; alt: string; w: number; h: number; cell?: string; pos?: string; h3?: string }
 
 const zones: Zone[] = [
-  { id: 'hall', src: '/img/hall.jpg', title: 'Главный зал', text: 'Просторный и уютный, для встреч с друзьями', alt: 'Главный зал с бирюзовыми диванами и проектором', w: 857, h: 1087 },
-  { id: 'ps5', src: '/img/ps5.jpg', title: 'PS5', text: 'Четыре приставки и большие экраны для игры компанией', alt: 'Зона с PS5: телевизоры и диваны', w: 640, h: 1073 },
+  { id: 'hall', src: '/img/hall.jpg', title: 'Главный зал', text: 'Просторный и уютный, для встреч с друзьями', alt: 'Главный зал с бирюзовыми диванами и проектором', w: 857, h: 1087, cell: 'col-span-2 row-span-2 tablet:row-span-1', pos: 'object-[50%_60%]', h3: 'text-[clamp(2.2rem,4.4vw,3.6rem)]' },
+  { id: 'ps5', src: '/img/ps5.jpg', title: 'PS5', text: 'Четыре приставки и большие экраны для игры компанией', alt: 'Зона с PS5: телевизоры и диваны', w: 640, h: 1073, pos: 'object-[50%_45%]' },
   { id: 'bill', src: '/img/billiard.jpg', title: 'Бильярд', text: 'Большой стол рядом с баром', alt: 'Бильярдный стол под зелёными лампами', w: 645, h: 1101 },
-  { id: 'cab', src: '/img/cabins.jpg', title: 'Кабинки', text: 'Закрываются шторами, для тихого вечера', alt: 'Кабинки, отделённые бархатными шторами', w: 860, h: 1090 },
-  { id: 'cin', src: '/img/cinema.jpg', title: 'Кино', text: 'Проектор для фильмов и матчей', alt: 'Зал с проектором и телевизорами', w: 628, h: 1100 }
+  { id: 'cab', src: '/img/cabins.jpg', title: 'Кабинки', text: 'Закрываются шторами, для тихого вечера', alt: 'Кабинки, отделённые бархатными шторами', w: 860, h: 1090, pos: 'object-[40%_55%]' },
+  { id: 'cin', src: '/img/cinema.jpg', title: 'Кино', text: 'Проектор для фильмов и матчей', alt: 'Зал с проектором и телевизорами', w: 628, h: 1100, cell: 'col-span-2 tablet:col-span-1', pos: 'object-[85%_38%] narrow:object-[85%_50%]' }
 ]
 
 const viewer = ref<Zone | null>(null)
@@ -29,12 +30,12 @@ onMounted(() => {
         io.unobserve(e.target)
       }
     }), { threshold: 0.25 })
-    g.querySelectorAll<HTMLElement>('.ph').forEach(el => io.observe(el))
+    g.querySelectorAll<HTMLElement>('figure').forEach(el => io.observe(el))
     onBeforeUnmount(() => io.disconnect())
   }
   // точки под галереей на телефоне
   g.addEventListener('scroll', () => {
-    const first = g.querySelector<HTMLElement>('.ph')
+    const first = g.querySelector<HTMLElement>('figure')
     if (!first) return
     active.value = Math.min(zones.length - 1, Math.round(g.scrollLeft / (first.offsetWidth + 12)))
   }, { passive: true })
@@ -42,23 +43,22 @@ onMounted(() => {
 </script>
 
 <template>
-  <section id="zones" class="section tight">
-    <div class="wrap">
-      <div class="head">
-        <div>
-          <div class="eyebrow">Атмосфера</div>
-          <h2>Как у нас</h2>
-        </div>
-        <p>Пять зон под любой вечер, от шумной компании до тихого разговора.</p>
-      </div>
+  <section id="zones" class="scroll-mt-[72px] pb-[clamp(56px,9vw,108px)] phone:pb-14">
+    <div class="shell">
+      <SectionHead eyebrow="Атмосфера" title="Как у нас">
+        Пять зон под любой вечер, от шумной компании до тихого разговора.
+      </SectionHead>
 
-      <div ref="gallery" class="gallery">
+      <div
+        ref="gallery"
+        class="grid grid-cols-3 grid-rows-[280px_280px_300px] gap-3.5 tablet:grid-cols-2 tablet:grid-rows-[300px_220px_220px] narrow:flex narrow:snap-x narrow:snap-mandatory narrow:gap-3 narrow:overflow-x-auto narrow:scroll-px-(--gutter-l) narrow:bleed-x scrollbar-none [@media(hover:hover)]:[&:hover_figure:not(:hover)_img]:brightness-60 [@media(hover:hover)]:[&:hover_figure:not(:hover)_img]:saturate-80"
+      >
         <figure
           v-for="z in zones"
           :key="z.id"
           :data-id="z.id"
-          class="ph"
-          :class="[`g-${z.id}`, { in: shown.has(z.id) }]"
+          class="group relative isolate m-0 min-w-0 cursor-zoom-in overflow-hidden rounded-card border border-line bg-panel transition-[border-color] duration-400 before:pointer-events-none before:absolute before:inset-0 before:z-1 before:bg-[radial-gradient(120%_90%_at_50%_110%,rgba(227,0,15,.35),transparent_60%)] before:opacity-0 before:transition-opacity before:duration-600 before:content-[''] after:absolute after:inset-0 after:z-1 after:bg-[linear-gradient(180deg,transparent_40%,rgba(19,15,17,.92))] after:content-[''] hover:border-brand/40 hover:before:opacity-100 focus-visible:border-brand/40 focus-visible:before:opacity-100 narrow:h-[430px] narrow:flex-[0_0_82%] narrow:snap-start"
+          :class="z.cell"
           tabindex="0"
           role="button"
           :aria-label="`Открыть фото: ${z.title}`"
@@ -67,6 +67,8 @@ onMounted(() => {
           @keydown.space.prevent="viewer = z"
         >
           <NuxtImg
+            class="absolute inset-0 block size-full object-cover [transition:scale_1.2s_cubic-bezier(.2,.7,.2,1),filter_.6s] group-hover:scale-[1.07] group-focus-visible:scale-[1.07] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            :class="[z.pos, shown.has(z.id) && 'animate-settle motion-reduce:animate-none']"
             :src="z.src"
             :alt="z.alt"
             :width="z.w"
@@ -75,14 +77,22 @@ onMounted(() => {
             loading="lazy"
             format="webp"
           />
-          <figcaption>
-            <h3>{{ z.title }}</h3>
-            <p>{{ z.text }}</p>
+          <figcaption class="absolute inset-x-5 bottom-[18px] z-2">
+            <h3
+              class="flex items-center gap-3 leading-none uppercase before:h-[3px] before:w-[22px] before:flex-none before:rounded-sm before:bg-brand before:transition-[width] before:duration-500 before:ease-[cubic-bezier(.2,.7,.2,1)] before:content-[''] group-hover:before:w-12 group-focus-visible:before:w-12 motion-reduce:before:transition-none narrow:text-[2.2rem]"
+              :class="z.h3 ?? 'text-[clamp(1.6rem,2.6vw,2.1rem)]'"
+            >{{ z.title }}</h3>
+            <p class="mt-1.5 mb-0 max-w-[38ch] text-[.88rem] leading-[1.4] text-mist transition-colors duration-400 group-hover:text-cream group-focus-visible:text-cream">{{ z.text }}</p>
           </figcaption>
         </figure>
       </div>
-      <div class="dots" aria-hidden="true">
-        <i v-for="(z, i) in zones" :key="z.id" :class="{ on: i === active }" />
+      <div class="mt-4 hidden justify-center gap-2 narrow:flex" aria-hidden="true">
+        <i
+          v-for="(z, i) in zones"
+          :key="z.id"
+          class="h-[7px] transition-all duration-300"
+          :class="i === active ? 'w-[22px] rounded-[4px] bg-brand' : 'w-[7px] rounded-full bg-cream/20'"
+        />
       </div>
     </div>
 
@@ -94,112 +104,23 @@ onMounted(() => {
       :ui="{ content: 'bg-[rgba(10,8,9,.95)]', header: 'sr-only', body: 'p-0 sm:p-0 flex items-center justify-center' }"
     >
       <template #body>
-        <div v-if="viewer" class="viewer" @click="viewer = null">
-          <img :src="viewer.src" :alt="viewer.alt">
-          <UButton class="close" icon="i-lucide-x" color="neutral" variant="outline" square aria-label="Закрыть" @click.stop="viewer = null" />
+        <div
+          v-if="viewer"
+          class="relative flex h-dvh w-full cursor-zoom-out items-center justify-center pt-[calc(20px+env(safe-area-inset-top,0px))] pr-(--gutter-r) pb-[calc(20px+env(safe-area-inset-bottom,0px))] pl-(--gutter-l)"
+          @click="viewer = null"
+        >
+          <img class="max-h-full max-w-full rounded-xl object-contain" :src="viewer.src" :alt="viewer.alt">
+          <UButton
+            class="absolute top-[calc(14px+env(safe-area-inset-top,0px))] right-[calc(14px+env(safe-area-inset-right,0px))] rounded-full"
+            icon="i-lucide-x"
+            color="neutral"
+            variant="outline"
+            square
+            aria-label="Закрыть"
+            @click.stop="viewer = null"
+          />
         </div>
       </template>
     </UModal>
   </section>
 </template>
-
-<style scoped>
-.gallery {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 280px 280px 300px;
-  grid-template-areas: "hall hall ps5" "hall hall bill" "cab cin cin";
-}
-.g-hall { grid-area: hall; }
-.g-ps5 { grid-area: ps5; }
-.g-bill { grid-area: bill; }
-.g-cab { grid-area: cab; }
-.g-cin { grid-area: cin; }
-
-.ph {
-  position: relative;
-  margin: 0;
-  border-radius: var(--r);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  cursor: zoom-in;
-  background: var(--panel);
-  min-width: 0;
-  isolation: isolate;
-  transition: border-color .4s;
-}
-.ph img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 1.2s cubic-bezier(.2, .7, .2, 1), filter .6s;
-}
-.g-cin img { object-position: 85% 38%; }
-.g-ps5 img { object-position: 50% 45%; }
-.g-hall img { object-position: 50% 60%; }
-.g-cab img { object-position: 40% 55%; }
-.ph.in img { animation: settle 1.6s cubic-bezier(.2, .7, .2, 1); }
-@keyframes settle { from { transform: scale(1.14); } to { transform: scale(1); } }
-
-.ph::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(120% 90% at 50% 110%, rgba(227, 0, 15, 0), rgba(227, 0, 15, 0));
-  transition: background .6s;
-}
-.ph::after { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 40%, rgba(19, 15, 17, .92)); }
-figcaption { position: absolute; left: 20px; right: 20px; bottom: 18px; z-index: 2; }
-h3 { font-size: clamp(1.6rem, 2.6vw, 2.1rem); text-transform: uppercase; line-height: 1; display: flex; align-items: center; gap: 12px; }
-h3::before { content: ""; width: 22px; height: 3px; background: var(--red); border-radius: 2px; transition: width .5s cubic-bezier(.2, .7, .2, 1); flex: none; }
-.g-hall h3 { font-size: clamp(2.2rem, 4.4vw, 3.6rem); }
-figcaption p { margin: 6px 0 0; color: var(--muted); font-size: .88rem; line-height: 1.4; max-width: 38ch; transition: color .4s; }
-
-.ph:hover, .ph:focus-visible { border-color: rgba(227, 0, 15, .38); }
-.ph:hover img, .ph:focus-visible img { transform: scale(1.07); }
-.ph:hover::before, .ph:focus-visible::before { background: radial-gradient(120% 90% at 50% 110%, rgba(227, 0, 15, .35), rgba(227, 0, 15, 0) 60%); }
-.ph:hover h3::before, .ph:focus-visible h3::before { width: 48px; }
-.ph:hover p, .ph:focus-visible p { color: var(--fg); }
-@media (hover: hover) { .gallery:hover .ph:not(:hover) img { filter: brightness(.6) saturate(.8); } }
-
-.dots { display: none; justify-content: center; gap: 8px; margin-top: 16px; }
-.dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(243, 236, 228, .22); transition: background .3s, width .3s; }
-.dots i.on { background: var(--red); width: 22px; border-radius: 4px; }
-
-.viewer { position: relative; width: 100%; height: 100dvh; display: flex; align-items: center; justify-content: center; padding: calc(20px + env(safe-area-inset-top, 0px)) var(--gutter-r) calc(20px + env(safe-area-inset-bottom, 0px)) var(--gutter-l); cursor: zoom-out; }
-.viewer img { max-width: 100%; max-height: 100%; border-radius: 12px; object-fit: contain; }
-.close { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: calc(14px + env(safe-area-inset-right, 0px)); border-radius: 999px; }
-
-@media (max-width: 860px) {
-  .gallery { grid-template-columns: 1fr 1fr; grid-template-rows: 300px 220px 220px; grid-template-areas: "hall hall" "ps5 bill" "cab cin"; }
-}
-@media (max-width: 600px) {
-  /* на телефоне галерея листается пальцем */
-  .gallery {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-    margin-inline: calc(-1 * var(--gutter-l)) calc(-1 * var(--gutter-r));
-    padding-inline: var(--gutter-l) var(--gutter-r);
-    scroll-padding-inline: var(--gutter-l);
-  }
-  .gallery::-webkit-scrollbar { display: none; }
-  .ph { flex: 0 0 82%; height: 430px; scroll-snap-align: start; }
-  h3, .g-hall h3 { font-size: 2.2rem; }
-  .g-cin img { object-position: 85% 50%; }
-  .dots { display: flex; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ph img, h3::before { transition: none; }
-  .ph.in img { animation: none; }
-  .ph:hover img { transform: none; }
-}
-</style>

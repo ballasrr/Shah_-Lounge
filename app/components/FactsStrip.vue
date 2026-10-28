@@ -10,26 +10,16 @@ const facts = [
 </script>
 
 <template>
-  <div class="wrap facts">
-    <div v-for="f in facts" :key="f.title">
-      <strong>{{ f.title }} <span v-if="f.star">★</span></strong>
-      <small>{{ f.text }}</small>
+  <div class="shell grid grid-cols-4 border-b border-line phone:grid-cols-2">
+    <div
+      v-for="f in facts"
+      :key="f.title"
+      class="min-w-0 border-r border-line px-5 py-[26px] last:border-r-0 phone:px-3.5 phone:py-5 phone:nth-2:border-r-0 phone:nth-[-n+2]:border-b"
+    >
+      <strong class="block font-display text-[1.9rem] leading-[1.1] font-bold phone:text-[1.55rem]">
+        {{ f.title }} <span v-if="f.star" class="text-brand">★</span>
+      </strong>
+      <small class="text-[.9rem] text-mist">{{ f.text }}</small>
     </div>
   </div>
 </template>
-
-<style scoped>
-.facts { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--line); }
-.facts div { padding: 26px 20px; border-right: 1px solid var(--line); min-width: 0; }
-.facts div:last-child { border-right: 0; }
-strong { display: block; font-family: var(--display); font-size: 1.9rem; font-weight: 700; line-height: 1.1; }
-strong span { color: var(--red); }
-small { color: var(--muted); font-size: .9rem; }
-@media (max-width: 760px) {
-  .facts { grid-template-columns: repeat(2, 1fr); }
-  .facts div { padding: 20px 14px; }
-  .facts div:nth-child(2) { border-right: 0; }
-  .facts div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-  strong { font-size: 1.55rem; }
-}
-</style>

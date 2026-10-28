@@ -3,6 +3,8 @@ import { venue } from '~/data/venue'
 
 const toast = useToast()
 
+const card = 'min-w-0 rounded-card border border-line bg-panel p-[clamp(22px,4vw,36px)]'
+
 // Время брони: с открытия до 23:30 (закрываемся в 01:00)
 const times: string[] = []
 for (let h = 12; h <= 23; h++) for (const m of ['00', '30']) times.push(`${String(h).padStart(2, '0')}:${m}`)
@@ -48,30 +50,29 @@ async function copyPhone() {
 </script>
 
 <template>
-  <section id="book" class="section tight">
-    <div class="wrap">
-      <div class="head">
-        <div>
-          <div class="eyebrow">Бронь</div>
-          <h2>Забронировать стол</h2>
-        </div>
-        <p>Позвоните или отправьте заявку в WhatsApp, мы подтвердим бронь.</p>
-      </div>
+  <section id="book" class="scroll-mt-[72px] pb-[clamp(56px,9vw,108px)] phone:pb-14">
+    <div class="shell">
+      <SectionHead eyebrow="Бронь" title="Забронировать стол">
+        Позвоните или отправьте заявку в WhatsApp, мы подтвердим бронь.
+      </SectionHead>
 
-      <div class="book">
-        <div class="card">
+      <div class="grid grid-cols-[1fr_1.1fr] gap-5 tablet:grid-cols-1">
+        <div :class="card">
           <div class="eyebrow">Телефон для брони</div>
-          <div id="booking-phone" class="phone">{{ venue.phone.display }}</div>
-          <div class="row">
+          <div
+            id="booking-phone"
+            class="mt-3.5 mb-5 font-display text-[clamp(2.4rem,6vw,3.4rem)] leading-none font-bold whitespace-nowrap select-all tabular-nums phone:text-[clamp(2rem,10vw,2.6rem)]"
+          >{{ venue.phone.display }}</div>
+          <div class="flex flex-wrap gap-2.5 phone:grid phone:grid-cols-2">
             <UButton :href="`tel:${venue.phone.tel}`" size="lg" icon="i-lucide-phone" label="Позвонить" />
             <UButton :to="`https://wa.me/${venue.phone.whatsapp}`" target="_blank" size="lg" class="btn-outline" icon="i-simple-icons-whatsapp" label="WhatsApp" />
-            <UButton size="lg" class="btn-outline copy" icon="i-lucide-copy" label="Скопировать номер" @click="copyPhone" />
+            <UButton size="lg" class="btn-outline phone:col-span-full" icon="i-lucide-copy" label="Скопировать номер" @click="copyPhone" />
           </div>
-          <p class="small">На вечер пятницы и выходных лучше бронировать заранее.</p>
+          <p class="mt-[18px] mb-0 text-[.9rem] text-mist">На вечер пятницы и выходных лучше бронировать заранее.</p>
         </div>
 
-        <form class="card form" @submit.prevent>
-          <UFormField label="Имя" class="full">
+        <form :class="[card, 'grid grid-cols-2 content-start gap-3.5 tiny:grid-cols-1']" @submit.prevent>
+          <UFormField label="Имя" class="col-span-full">
             <UInput v-model="form.name" placeholder="Как к вам обращаться" autocomplete="name" size="lg" class="w-full" />
           </UFormField>
           <UFormField label="Дата">
@@ -86,36 +87,9 @@ async function copyPhone() {
           <UFormField label="Пожелания">
             <UInput v-model="form.note" placeholder="День рождения, у окна…" size="lg" class="w-full" />
           </UFormField>
-          <UButton :to="waLink" target="_blank" size="xl" block class="full" icon="i-simple-icons-whatsapp" label="Отправить заявку в WhatsApp" />
+          <UButton :to="waLink" target="_blank" size="xl" block class="col-span-full" icon="i-simple-icons-whatsapp" label="Отправить заявку в WhatsApp" />
         </form>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-.book { display: grid; grid-template-columns: 1fr 1.1fr; gap: 20px; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); padding: clamp(22px, 4vw, 36px); min-width: 0; }
-.phone {
-  font-family: var(--display);
-  font-weight: 700;
-  font-size: clamp(2.4rem, 6vw, 3.4rem);
-  line-height: 1;
-  margin: 14px 0 20px;
-  user-select: all;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.row { display: flex; flex-wrap: wrap; gap: 10px; }
-.small { color: var(--muted); font-size: .9rem; margin: 18px 0 0; }
-.form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-content: start; }
-.full { grid-column: 1 / -1; }
-
-@media (max-width: 860px) { .book { grid-template-columns: 1fr; } }
-@media (max-width: 760px) {
-  .phone { font-size: clamp(2rem, 10vw, 2.6rem); }
-  .row { display: grid; grid-template-columns: 1fr 1fr; }
-  .copy { grid-column: 1 / -1; }
-}
-@media (max-width: 480px) { .form { grid-template-columns: 1fr; } }
-</style>

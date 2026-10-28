@@ -107,16 +107,5 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <canvas ref="canvas" class="smoke" aria-hidden="true" />
+  <canvas ref="canvas" class="pointer-events-none absolute inset-0 z-3 size-full" aria-hidden="true" />
 </template>
-
-<style scoped>
-.smoke {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 3;
-}
-</style>
