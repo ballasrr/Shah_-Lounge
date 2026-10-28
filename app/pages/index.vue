@@ -56,16 +56,12 @@ useSchemaOrg([
 
 <template>
   <div>
-    <AppHeader />
-    <main id="top">
-      <HeroSection />
-      <FactsStrip />
-      <MenuSection />
-      <GallerySection />
-      <BookingSection />
-      <ContactsSection />
-    </main>
-    <AppFooter />
+    <HeroSection />
+    <FactsStrip />
+    <MenuSection />
+    <GallerySection />
+    <BookingSection />
+    <ContactsSection />
     <MobileDock />
   </div>
 </template>
