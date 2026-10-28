@@ -61,7 +61,7 @@ const socials = [
         </div>
       </div>
 
-      <TwoGisMap class="mt-10 tablet:mt-8" />
+      <VenueMap class="mt-10 tablet:mt-8" />
     </div>
   </section>
 </template>
