@@ -8,6 +8,7 @@ const logoEl = computed(() => logo.value?.el ?? null)
 
 <template>
   <section id="hero" class="relative overflow-hidden border-b border-line">
+    <HeroVideo />
     <HeroSmoke :source="logoEl" />
     <div class="shell relative z-2 grid grid-cols-[1.15fr_.85fr] items-center gap-10 py-[clamp(56px,8vw,104px)] max-[820px]:grid-cols-1 max-[820px]:gap-7 max-[820px]:pt-9 max-[820px]:pb-14">
       <div class="min-w-0">
