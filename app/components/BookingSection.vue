@@ -35,7 +35,8 @@ const waLink = computed(() => {
 const formEl = ref<HTMLFormElement>()
 function pickTable(t: { number: number; seats: number }) {
   form.note = `Стол №${t.number}`
-  if (form.guests > t.seats) form.guests = t.seats
+  // 0 — в iiko места у стола не указаны, гостей не ограничиваем
+  if (t.seats && form.guests > t.seats) form.guests = t.seats
   formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   toast.add({ title: `Стол №${t.number} добавлен в заявку`, icon: 'i-lucide-check' })
 }

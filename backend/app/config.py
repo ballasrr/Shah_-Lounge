@@ -24,6 +24,8 @@ class Settings:
     cache_seconds: int
     cors_origins: list[str]
     force_demo: bool = False
+    # залы из iiko, которые гостям не показываем (виртуальные «На вынос», «Доставка»)
+    hide_sections: tuple[str, ...] = ()
 
     @property
     def demo(self) -> bool:
@@ -44,4 +46,5 @@ def load_settings() -> Settings:
         cache_seconds=int(env("CACHE_SECONDS", "30")),
         cors_origins=[o.strip() for o in env("CORS_ORIGINS", DEV_ORIGINS).split(",") if o.strip()],
         force_demo=env("DEMO", "") == "1",
+        hide_sections=tuple(n.strip().lower() for n in env("IIKO_HIDE_SECTIONS", "На вынос,Доставка").split(",") if n.strip()),
     )

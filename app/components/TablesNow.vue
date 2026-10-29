@@ -50,8 +50,11 @@ const counts = computed(() => {
   return c
 })
 
-// стулья равномерно по кругу; до 10 штук, чтобы не слипались
-const chairs = (n: number) => Array.from({ length: Math.min(n, 10) }, (_, i) => (360 / Math.min(n, 10)) * i)
+// стулья равномерно по кругу; до 10 штук, чтобы не слипались. Если в iiko места не указаны (0) — рисуем 4
+const chairs = (n: number) => {
+  const k = Math.min(n || 4, 10)
+  return Array.from({ length: k }, (_, i) => (360 / k) * i)
+}
 
 async function load() {
   try {
@@ -121,7 +124,7 @@ onBeforeUnmount(() => clearInterval(timer))
             :type="t.status === 'free' ? 'button' : undefined"
             class="group flex w-[110px] flex-col items-center gap-1 py-1 phone:w-[82px]"
             :class="t.status === 'free' && 'cursor-pointer'"
-            :aria-label="`${t.name}, мест: ${t.seats}, ${STATUS[t.status].label}${t.reserved_at ? ` с ${t.reserved_at}` : ''}`"
+            :aria-label="`${t.name}${t.seats ? `, мест: ${t.seats}` : ''}, ${STATUS[t.status].label}${t.reserved_at ? ` с ${t.reserved_at}` : ''}`"
             :title="t.status === 'free' ? 'Добавить в заявку' : undefined"
             @click="t.status === 'free' && emit('pick', t)"
           >
@@ -138,7 +141,7 @@ onBeforeUnmount(() => clearInterval(timer))
                 :class="STATUS[t.status].top"
               >
                 <b class="font-display text-[1.55rem] leading-none phone:text-[1.2rem]">{{ t.number }}</b>
-                <span class="mt-0.5 inline-flex items-center gap-0.5 text-[.68rem] leading-none opacity-75"><UIcon name="i-lucide-users" class="size-3" />{{ t.seats }}</span>
+                <span v-if="t.seats" class="mt-0.5 inline-flex items-center gap-0.5 text-[.68rem] leading-none opacity-75"><UIcon name="i-lucide-users" class="size-3" />{{ t.seats }}</span>
               </span>
             </span>
             <span class="rounded-full px-2.5 py-0.5 text-[.74rem] font-semibold whitespace-nowrap" :class="STATUS[t.status].pill">

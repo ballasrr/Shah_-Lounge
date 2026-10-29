@@ -124,7 +124,8 @@ class TablesService:
         assert self.client
         org_id, tg_id = await self._ids()
         if not self._sections or time.monotonic() - self._sections_at > SECTIONS_TTL:
-            self._sections = await self.client.sections(tg_id)
+            hidden = self.s.hide_sections
+            self._sections = [s for s in await self.client.sections(tg_id) if (s.get("name") or "").strip().lower() not in hidden]
             self._sections_at = time.monotonic()
         section_ids = [s["id"] for s in self._sections]
         table_ids = [t["id"] for s in self._sections for t in s.get("tables") or []]

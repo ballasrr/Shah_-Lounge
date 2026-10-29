@@ -68,7 +68,8 @@ class IikoClient:
         return data.get("organizations", [])
 
     async def terminal_groups(self, organization_id: str) -> list[dict]:
-        data = await self.call("/api/1/terminal_groups", {"organizationIds": [organization_id]})
+        # без includeDisabled iiko может не отдать единственную группу, если считает её отключённой
+        data = await self.call("/api/1/terminal_groups", {"organizationIds": [organization_id], "includeDisabled": True})
         return [tg for group in data.get("terminalGroups", []) for tg in group.get("items", [])]
 
     async def sections(self, terminal_group_id: str) -> list[dict]:

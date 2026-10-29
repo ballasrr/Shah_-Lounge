@@ -11,7 +11,8 @@ from .iiko import IikoClient
 
 async def main() -> None:
     s = load_settings()
-    if s.demo:
+    # DEMO=1 влияет только на сайт; discover всегда ходит в настоящую iiko
+    if not s.api_login:
         print("IIKO_API_LOGIN не задан в backend/.env — проверять нечего.")
         return
     client = IikoClient(s.api_login, app_id=s.app_id, client_secret=s.client_secret)
