@@ -26,7 +26,7 @@ const logoEl = computed(() => logo.value?.el ?? null)
           <UButton to="#menu" size="xl" class="btn-outline" label="Смотреть меню" />
         </div>
       </div>
-      <div class="w-[min(330px,100%)] justify-self-center max-[820px]:order-first max-[820px]:w-[min(210px,58%)]">
+      <div class="w-[min(330px,100%)] justify-self-center translate-x-[clamp(0px,5vw,72px)] max-[820px]:order-first max-[820px]:translate-x-0 max-[820px]:w-[min(210px,58%)]">
         <LogoNeon ref="logo" />
       </div>
     </div>
