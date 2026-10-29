@@ -69,8 +69,8 @@ let timer: ReturnType<typeof setInterval> | undefined
 onMounted(() => {
   local.value = ['localhost', '127.0.0.1'].includes(location.hostname)
   load()
-  // обновляем раз в 30 секунд, пока вкладка открыта
-  timer = setInterval(() => { if (!document.hidden) load() }, 30_000)
+  // обновляем раз в 10 секунд, пока вкладка открыта
+  timer = setInterval(() => { if (!document.hidden) load() }, 10_000)
 })
 onBeforeUnmount(() => clearInterval(timer))
 </script>

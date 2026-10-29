@@ -43,7 +43,7 @@ def load_settings() -> Settings:
         terminal_group_id=env("IIKO_TERMINAL_GROUP_ID", "").strip(),
         tz=ZoneInfo(env("TIMEZONE", "Europe/Moscow")),
         reserve_ahead_minutes=int(env("RESERVE_AHEAD_MINUTES", "120")),
-        cache_seconds=int(env("CACHE_SECONDS", "30")),
+        cache_seconds=int(env("CACHE_SECONDS", "10")),
         cors_origins=[o.strip() for o in env("CORS_ORIGINS", DEV_ORIGINS).split(",") if o.strip()],
         force_demo=env("DEMO", "") == "1",
         hide_sections=tuple(n.strip().lower() for n in env("IIKO_HIDE_SECTIONS", "На вынос,Доставка").split(",") if n.strip()),
