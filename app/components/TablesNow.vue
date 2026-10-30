@@ -1,60 +1,56 @@
 <script setup lang="ts">
-// Столы прямо сейчас — схема зала: свободен / занят / забронирован. Данные берутся из бэкенда (backend/), а он — из кассы iiko.
+import { hallTables, hallWalls, hallZones, type HallTable } from '~/data/hall'
+
+// Столы прямо сейчас — схема зала: свободен / занят / забронирован. Статусы берутся из бэкенда (backend/), а он — из кассы iiko; план и места — из data/hall.ts.
 // Пока бэкенд отдаёт тестовые данные, блок виден только на localhost, чтобы гости не видели выдуманных статусов.
 
 type Status = 'free' | 'busy' | 'reserved'
 interface Table { id: string; number: number; name: string; seats: number; section: string; status: Status; reserved_at: string | null }
 interface TablesResponse { updatedAt: string; demo: boolean; stale: boolean; tables: Table[] }
 
-const emit = defineEmits<{ pick: [table: Table] }>()
+const emit = defineEmits<{ pick: [table: { number: number; name: string; seats: number }] }>()
 
 const data = ref<TablesResponse | null>(null)
 const local = ref(false)
 
-// top — столешница, chair — стулья вокруг, pill — подпись под столом
-const STATUS: Record<Status, { label: string; dot: string; top: string; chair: string; pill: string }> = {
+// top — стол на плане, pill — цвет подписи статуса
+const STATUS: Record<Status, { label: string; dot: string; top: string; pill: string }> = {
   free: {
     label: 'свободен',
     dot: 'bg-live',
     top: 'border-live bg-live/15 text-cream shadow-[0_0_28px_rgba(85,194,122,.28)] group-hover:bg-live/25 group-hover:shadow-[0_0_36px_rgba(85,194,122,.5)]',
-    chair: 'bg-live/55',
-    pill: 'bg-live/15 text-live'
+    pill: 'text-live'
   },
   busy: {
     label: 'занят',
     dot: 'bg-brand',
     top: 'border-line bg-ink/60 text-mist/50',
-    chair: 'bg-line',
     pill: 'text-mist/60'
   },
   reserved: {
     label: 'бронь',
     dot: 'bg-hold',
     top: 'border-hold bg-hold/12 text-cream shadow-[0_0_24px_rgba(233,162,59,.22)]',
-    chair: 'bg-hold/50',
-    pill: 'bg-hold/15 text-hold'
+    pill: 'text-hold'
   }
 }
 
 const visible = computed(() => !!data.value?.tables.length && (!data.value.demo || local.value))
 
-const sections = computed(() => {
-  const map = new Map<string, Table[]>()
-  for (const t of data.value?.tables ?? []) map.set(t.section, [...(map.get(t.section) ?? []), t])
-  return [...map].map(([name, tables]) => ({ name, tables, free: tables.filter(t => t.status === 'free').length }))
+// столы с плана со статусами из iiko; столы, которых нет на плане, не показываем
+const tables = computed(() => {
+  const live = new Map((data.value?.tables ?? []).map(t => [t.number, t]))
+  return hallTables.flatMap((h: HallTable) => {
+    const t = live.get(h.number)
+    return t ? [{ ...h, id: t.id, status: t.status, reserved_at: t.reserved_at, name: h.title ?? `Стол №${h.number}` }] : []
+  })
 })
 
 const counts = computed(() => {
   const c: Record<Status, number> = { free: 0, busy: 0, reserved: 0 }
-  for (const t of data.value?.tables ?? []) c[t.status]++
+  for (const t of tables.value) c[t.status]++
   return c
 })
-
-// стулья равномерно по кругу; до 10 штук, чтобы не слипались. Если в iiko места не указаны (0) — рисуем 4
-const chairs = (n: number) => {
-  const k = Math.min(n || 4, 10)
-  return Array.from({ length: k }, (_, i) => (360 / k) * i)
-}
 
 async function load() {
   try {
@@ -88,7 +84,8 @@ onBeforeUnmount(() => clearInterval(timer))
           <UBadge v-if="data!.demo" color="neutral" variant="outline" size="sm" label="тестовые данные" />
         </div>
         <div class="mt-2.5 font-display text-[clamp(2rem,4.4vw,2.9rem)] leading-none uppercase">
-          Свободно <span class="text-live">{{ counts.free }}</span> <span class="text-mist">из {{ data!.tables.length }}</span>
+          <!-- цифры в основном шрифте: в Yanone Kaffeesatz 1 и 2 ниже заглавных букв -->
+          Свободно <span class="font-sans font-bold text-live">{{ counts.free }}</span> <span class="text-mist">из <span class="font-sans font-bold">{{ tables.length }}</span></span>
         </div>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -103,57 +100,52 @@ onBeforeUnmount(() => clearInterval(timer))
       </div>
     </div>
 
-    <!-- зоны: ширина по количеству столов, на узком экране — друг под другом -->
-    <div class="relative flex flex-wrap gap-4">
-      <section
-        v-for="s in sections"
-        :key="s.name"
-        class="min-w-0 rounded-[12px] border border-dashed border-line bg-[radial-gradient(rgba(255,255,255,.035)_1px,transparent_1px)] bg-size-[16px_16px] px-4 pt-3.5 pb-4 phone:px-2"
-        :style="{ flex: `${s.tables.length} 1 ${s.tables.length * 118 + 34}px` }"
-      >
-        <div class="mb-2 flex items-baseline justify-between gap-3">
-          <h4 class="font-display text-[1.35rem] leading-none uppercase">{{ s.name }}</h4>
-          <span class="text-[.78rem] text-mist">свободно {{ s.free }} из {{ s.tables.length }}</span>
-        </div>
+    <!-- план зала: на телефоне листается вбок, чтобы столы оставались крупными -->
+    <div class="relative -mx-1 overflow-x-auto p-1">
+      <div class="relative mx-auto aspect-[1000/645] max-w-[1000px] min-w-[640px] rounded-[12px] border-2 border-line bg-[radial-gradient(rgba(255,255,255,.035)_1px,transparent_1px)] bg-size-[16px_16px]">
+        <i
+          v-for="(w, i) in hallWalls"
+          :key="i"
+          class="absolute bg-line"
+          :style="{ left: `${w.x}%`, top: `${w.y}%`, width: `${w.w}%`, height: `${w.h}%` }"
+        />
+        <span
+          v-for="z in hallZones"
+          :key="z.name"
+          class="absolute text-[.7rem] font-semibold tracking-[.08em] whitespace-nowrap text-mist/70 uppercase"
+          :style="{ left: `${z.x}%`, top: `${z.y}%` }"
+        >{{ z.name }}</span>
+        <div class="absolute top-[93%] left-[64%] grid h-[7%] w-[18%] place-items-center rounded-t-[6px] border border-b-0 border-line bg-ink/50 text-[.7rem] text-mist/70 uppercase">Бар</div>
+        <!-- проём входа перекрывает внешнюю стену -->
+        <div class="absolute right-[6%] -bottom-[2px] h-[2px] w-[8%] bg-panel" />
+        <span class="absolute right-[6%] bottom-[2%] flex w-[8%] justify-center gap-1 text-[.7rem] font-semibold text-mist uppercase">Вход</span>
 
-        <div class="flex flex-wrap justify-center gap-x-2 gap-y-1 [--r:43px] phone:[--r:31px] phone:gap-x-1">
-          <component
-            :is="t.status === 'free' ? 'button' : 'div'"
-            v-for="t in s.tables"
-            :key="t.id"
-            :type="t.status === 'free' ? 'button' : undefined"
-            class="group flex w-[110px] flex-col items-center gap-1 py-1 phone:w-[82px]"
-            :class="t.status === 'free' && 'cursor-pointer'"
-            :aria-label="`${t.name}${t.seats ? `, мест: ${t.seats}` : ''}, ${STATUS[t.status].label}${t.reserved_at ? ` с ${t.reserved_at}` : ''}`"
-            :title="t.status === 'free' ? 'Добавить в заявку' : undefined"
-            @click="t.status === 'free' && emit('pick', t)"
-          >
-            <span class="relative block size-[106px] transition-transform duration-200 group-hover:scale-105 phone:size-[80px]" :class="t.status !== 'free' && 'group-hover:scale-100'">
-              <i
-                v-for="deg in chairs(t.seats)"
-                :key="deg"
-                class="absolute top-1/2 left-1/2 h-[9px] w-[18px] rounded-full transition-colors phone:h-[7px] phone:w-[14px]"
-                :class="STATUS[t.status].chair"
-                :style="{ transform: `translate(-50%, -50%) rotate(${deg}deg) translateY(calc(-1 * var(--r)))` }"
-              />
-              <span
-                class="absolute inset-[22px] grid place-items-center content-center rounded-full border-2 transition-[background-color,box-shadow] duration-200 phone:inset-[17px]"
-                :class="STATUS[t.status].top"
-              >
-                <b class="font-display text-[1.55rem] leading-none phone:text-[1.2rem]">{{ t.number }}</b>
-                <span v-if="t.seats" class="mt-0.5 inline-flex items-center gap-0.5 text-[.68rem] leading-none opacity-75"><UIcon name="i-lucide-users" class="size-3" />{{ t.seats }}</span>
-              </span>
-            </span>
-            <span class="rounded-full px-2.5 py-0.5 text-[.74rem] font-semibold whitespace-nowrap" :class="STATUS[t.status].pill">
-              {{ t.status === 'reserved' && t.reserved_at ? `бронь с ${t.reserved_at}` : STATUS[t.status].label }}
-            </span>
-          </component>
-        </div>
-      </section>
+        <component
+          :is="t.status === 'free' ? 'button' : 'div'"
+          v-for="t in tables"
+          :key="t.id"
+          :type="t.status === 'free' ? 'button' : undefined"
+          class="group absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center content-center rounded-[10px] border-2 px-1 transition-[background-color,box-shadow,scale] duration-200 motion-reduce:transition-none"
+          :class="[STATUS[t.status].top, t.status === 'free' && 'cursor-pointer hover:scale-105']"
+          :style="{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.w}%`, height: `${t.h}%` }"
+          :aria-label="`${t.name}, ${t.zone}, мест: ${t.seats}, ${STATUS[t.status].label}${t.reserved_at ? ` с ${t.reserved_at}` : ''}`"
+          :title="t.status === 'free' ? 'Добавить в заявку' : undefined"
+          @click="t.status === 'free' && emit('pick', { number: t.number, name: t.name, seats: t.seats })"
+        >
+          <span class="inline-flex items-center gap-1.5 leading-none">
+            <b class="font-display text-[1.2rem] leading-none" :class="t.title && 'uppercase'">{{ t.title ?? t.number }}</b>
+            <span class="inline-flex items-center gap-0.5 text-[.68rem] opacity-75"><UIcon name="i-lucide-users" class="size-3" />{{ t.seats }}</span>
+            <UIcon v-if="t.tv" name="i-lucide-tv" class="size-3 opacity-75" />
+          </span>
+          <span class="mt-0.5 text-[.68rem] leading-none font-semibold whitespace-nowrap" :class="STATUS[t.status].pill">
+            {{ t.status === 'reserved' && t.reserved_at ? `бронь с ${t.reserved_at}` : STATUS[t.status].label }}
+          </span>
+        </component>
+      </div>
     </div>
 
     <div class="relative mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-[.85rem] text-mist">
-      <span class="inline-flex items-center gap-2"><UIcon name="i-lucide-mouse-pointer-click" class="size-4 text-live" />Нажмите на свободный стол — добавим его в заявку</span>
+      <span class="inline-flex items-center gap-2"><UIcon name="i-lucide-mouse-pointer-click" class="size-4 text-live" />Нажмите на свободный стол — добавим его в заявку<span class="hidden phone:inline">. Схема листается вбок</span></span>
       <span class="inline-flex items-center gap-1.5">
         <UIcon name="i-lucide-refresh-cw" class="size-3.5" />обновлено в {{ data!.updatedAt }}<template v-if="data!.stale"> · касса временно не отвечает</template>
       </span>

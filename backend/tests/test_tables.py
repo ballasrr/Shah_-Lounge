@@ -65,7 +65,7 @@ def test_demo_has_all_statuses_shape():
     assert all(t.reserved_at for t in tables if t.status == "reserved")
 
 
-def fake_iiko(calls: list[str], fail: bool = False) -> httpx.AsyncClient:
+def fake_iiko(calls: list[str], fail: bool = False, init_fails: bool = False) -> httpx.AsyncClient:
     """Подменяет iiko: отвечает на нужные методы, считает вызовы."""
     def handler(req: httpx.Request) -> httpx.Response:
         path = req.url.path
@@ -87,6 +87,9 @@ def fake_iiko(calls: list[str], fail: bool = False) -> httpx.AsyncClient:
             case "/api/1/reserve/available_restaurant_sections":
                 assert body["terminalGroupIds"] == ["tg"]
                 return httpx.Response(200, json={"restaurantSections": SECTIONS})
+            case "/api/1/order/init_by_table":
+                assert body["organizationId"] == "org" and body["terminalGroupId"] == "tg"
+                return httpx.Response(500 if init_fails else 200, json={"correlationId": "c"})
             case "/api/1/order/by_table":
                 assert req.headers["Authorization"] == "Bearer tok"
                 return httpx.Response(200, json={"orders": [{"order": {"tableIds": ["t3"]}}]})
@@ -111,6 +114,20 @@ def test_service_with_iiko_and_cache():
     assert second is first  # второй запрос из кеша
     assert calls.count("/api/1/access_token") == 1
     assert calls.count("/api/1/order/by_table") == 1
+    # заказы с кассы запрашиваем раньше, чем читаем
+    assert calls.index("/api/1/order/init_by_table") < calls.index("/api/1/order/by_table")
+
+
+def test_service_shows_cloud_orders_when_init_fails():
+    async def run():
+        svc = TablesService(settings(api_login="key"), IikoClient("key", fake_iiko([], init_fails=True)))
+        result = await svc.get()
+        await svc.close()
+        return result
+
+    result = asyncio.run(run())
+    assert result["stale"] is False
+    assert {t["number"]: t["status"] for t in result["tables"]}[3] == "busy"
 
 
 def test_service_keeps_last_data_when_iiko_fails():

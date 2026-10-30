@@ -90,6 +90,14 @@ class IikoClient:
         )
         return data.get("reserves", [])
 
+    async def init_orders(self, organization_id: str, terminal_group_id: str, table_ids: list[str]) -> None:
+        """Просим кассу передать в облако заказы со столов: без этого заказы с кассы не видны в order/by_table.
+        Касса выполняет команду не сразу, поэтому заказ появляется при следующем чтении."""
+        await self.call(
+            "/api/1/order/init_by_table",
+            {"organizationId": organization_id, "terminalGroupId": terminal_group_id, "tableIds": table_ids},
+        )
+
     async def open_orders(self, organization_id: str, table_ids: list[str]) -> list[dict]:
         """Открытые заказы на столах: если на столе есть заказ, он занят."""
         data = await self.call(

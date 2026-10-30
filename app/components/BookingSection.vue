@@ -33,12 +33,11 @@ const waLink = computed(() => {
 
 // гость выбрал свободный стол на схеме — подставляем его в заявку
 const formEl = ref<HTMLFormElement>()
-function pickTable(t: { number: number; seats: number }) {
-  form.note = `Стол №${t.number}`
-  // 0 — в iiko места у стола не указаны, гостей не ограничиваем
-  if (t.seats && form.guests > t.seats) form.guests = t.seats
+function pickTable(t: { name: string; seats: number }) {
+  form.note = t.name
+  if (form.guests > t.seats) form.guests = t.seats
   formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  toast.add({ title: `Стол №${t.number} добавлен в заявку`, icon: 'i-lucide-check' })
+  toast.add({ title: `${t.name} добавлен в заявку`, icon: 'i-lucide-check' })
 }
 
 async function copyPhone() {

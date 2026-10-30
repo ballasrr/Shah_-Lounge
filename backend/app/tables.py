@@ -129,6 +129,11 @@ class TablesService:
             self._sections_at = time.monotonic()
         section_ids = [s["id"] for s in self._sections]
         table_ids = [t["id"] for s in self._sections for t in s.get("tables") or []]
+        if table_ids:
+            try:
+                await self.client.init_orders(org_id, tg_id, table_ids)
+            except IikoError:
+                pass  # касса может быть выключена — покажем то, что уже есть в облаке
         orders, reserves = await asyncio.gather(
             self.client.open_orders(org_id, table_ids) if table_ids else asyncio.sleep(0, []),
             self.client.reserves(section_ids, now - timedelta(hours=6), now + timedelta(hours=12)) if section_ids else asyncio.sleep(0, []),
