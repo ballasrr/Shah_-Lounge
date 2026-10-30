@@ -10,7 +10,7 @@ const logoEl = computed(() => logo.value?.el ?? null)
   <section id="hero" class="relative overflow-hidden border-b border-line">
     <HeroVideo />
     <HeroSmoke :source="logoEl" />
-    <div class="shell relative z-2 grid grid-cols-[1.15fr_.85fr] items-center gap-10 py-[clamp(56px,8vw,104px)] max-[820px]:grid-cols-1 max-[820px]:gap-7 max-[820px]:pt-9 max-[820px]:pb-14">
+    <div class="shell relative z-2 grid grid-cols-[1.15fr_.85fr] items-center gap-10 py-[clamp(56px,8vw,104px)] max-[820px]:grid-cols-1 max-[820px]:gap-4 max-[820px]:pt-5 max-[820px]:pb-10">
       <div class="min-w-0">
         <p class="m-0 inline-flex animate-rise items-center gap-2.5 text-[.9rem] text-mist motion-reduce:animate-none">
           <i class="size-[9px] rounded-full" :class="status?.open ? 'animate-pulse-ring bg-live motion-reduce:animate-none' : 'bg-mist'" />
@@ -26,7 +26,7 @@ const logoEl = computed(() => logo.value?.el ?? null)
           <UButton to="#menu" size="xl" class="btn-outline" label="Смотреть меню" />
         </div>
       </div>
-      <div class="w-[min(330px,100%)] justify-self-center translate-x-[clamp(0px,5vw,72px)] max-[820px]:order-first max-[820px]:translate-x-0 max-[820px]:w-[min(210px,58%)]">
+      <div class="w-[min(330px,100%)] justify-self-center translate-x-[clamp(0px,5vw,72px)] max-[820px]:order-first max-[820px]:translate-x-0 max-[820px]:w-[min(150px,42%)]">
         <LogoNeon ref="logo" />
       </div>
     </div>

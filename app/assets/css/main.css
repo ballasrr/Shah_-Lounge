@@ -104,6 +104,11 @@
 
   h1, h2, h3 { @apply font-display font-bold tracking-[.02em] text-balance; }
 
+  /* на телефоне кнопки и поля не меньше 44 px, чтобы попадать пальцем */
+  @media (max-width: 760px) {
+    a[data-slot="base"], button[data-slot="base"], input[data-slot="base"] { min-height: 44px; }
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-brand-hi);
     outline-offset: 3px;

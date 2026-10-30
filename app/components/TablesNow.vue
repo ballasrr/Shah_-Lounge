@@ -37,6 +37,12 @@ const STATUS: Record<Status, { label: string; dot: string; top: string; pill: st
 
 const visible = computed(() => !!data.value?.tables.length && (!data.value.demo || local.value))
 
+// положение на плане: на телефоне свои координаты, переключает CSS
+const place = (d: { x: number; y: number; w?: number; h?: number }, p: { x: number; y: number; w?: number; h?: number }) => ({
+  '--x': `${d.x}%`, '--y': `${d.y}%`, '--w': `${d.w}%`, '--h': `${d.h}%`,
+  '--px': `${p.x}%`, '--py': `${p.y}%`, '--pw': `${p.w}%`, '--ph': `${p.h}%`
+})
+
 // столы с плана со статусами из iiko; столы, которых нет на плане, не показываем
 const tables = computed(() => {
   const live = new Map((data.value?.tables ?? []).map(t => [t.number, t]))
@@ -100,44 +106,44 @@ onBeforeUnmount(() => clearInterval(timer))
       </div>
     </div>
 
-    <!-- план зала: на телефоне листается вбок, чтобы столы оставались крупными -->
-    <div class="relative -mx-1 overflow-x-auto p-1">
-      <div class="relative mx-auto aspect-[1000/645] max-w-[1000px] min-w-[640px] rounded-[12px] border-2 border-line bg-[radial-gradient(rgba(255,255,255,.035)_1px,transparent_1px)] bg-size-[16px_16px]">
+    <!-- план зала: на телефоне повёрнут вертикально и помещается целиком -->
+    <div class="relative">
+      <div class="relative mx-auto aspect-[1000/645] max-w-[1000px] rounded-[12px] phone:aspect-[3/5] phone:max-w-[420px] border-2 border-line bg-[radial-gradient(rgba(255,255,255,.035)_1px,transparent_1px)] bg-size-[16px_16px]">
         <i
           v-for="(w, i) in hallWalls"
           :key="i"
-          class="absolute bg-line"
-          :style="{ left: `${w.x}%`, top: `${w.y}%`, width: `${w.w}%`, height: `${w.h}%` }"
+          class="absolute top-(--y) left-(--x) h-(--h) w-(--w) bg-line phone:top-(--py) phone:left-(--px) phone:h-(--ph) phone:w-(--pw)"
+          :style="place(w, w.p)"
         />
         <span
           v-for="z in hallZones"
           :key="z.name"
-          class="absolute text-[.7rem] font-semibold tracking-[.08em] whitespace-nowrap text-mist/70 uppercase"
-          :style="{ left: `${z.x}%`, top: `${z.y}%` }"
+          class="absolute top-(--y) left-(--x) text-[.7rem] font-semibold tracking-[.08em] whitespace-nowrap text-mist/70 uppercase phone:top-(--py) phone:left-(--px) phone:text-[.62rem] phone:tracking-[.04em]"
+          :style="place(z, z.p)"
         >{{ z.name }}</span>
-        <div class="absolute top-[93%] left-[64%] grid h-[7%] w-[18%] place-items-center rounded-t-[6px] border border-b-0 border-line bg-ink/50 text-[.7rem] text-mist/70 uppercase">Бар</div>
+        <div class="absolute top-[93%] left-[64%] grid h-[7%] w-[18%] place-items-center rounded-t-[6px] border border-b-0 border-line bg-ink/50 text-[.7rem] text-mist/70 uppercase phone:top-[18%] phone:left-[90%] phone:h-[20%] phone:w-[10%] phone:rounded-t-none phone:rounded-l-[6px] phone:border-r-0 phone:border-b phone:text-[.6rem]">Бар</div>
         <!-- проём входа перекрывает внешнюю стену -->
-        <div class="absolute right-[6%] -bottom-[2px] h-[2px] w-[8%] bg-panel" />
-        <span class="absolute right-[6%] bottom-[2%] flex w-[8%] justify-center gap-1 text-[.7rem] font-semibold text-mist uppercase">Вход</span>
+        <div class="absolute right-[6%] -bottom-[2px] h-[2px] w-[8%] bg-panel phone:top-[3%] phone:-right-[2px] phone:bottom-auto phone:h-[9%] phone:w-[2px]" />
+        <span class="absolute right-[6%] bottom-[2%] flex w-[8%] justify-center gap-1 text-[.7rem] font-semibold text-mist uppercase phone:top-[3%] phone:right-0 phone:bottom-auto phone:h-[9%] phone:w-[10.5%] phone:items-center phone:text-[.58rem]">Вход</span>
 
         <component
           :is="t.status === 'free' ? 'button' : 'div'"
           v-for="t in tables"
           :key="t.id"
           :type="t.status === 'free' ? 'button' : undefined"
-          class="group absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center content-center rounded-[10px] border-2 px-1 transition-[background-color,box-shadow,scale] duration-200 motion-reduce:transition-none"
+          class="group absolute top-(--y) left-(--x) grid h-(--h) w-(--w) -translate-x-1/2 -translate-y-1/2 place-items-center content-center rounded-[10px] border-2 px-1 phone:top-(--py) phone:left-(--px) phone:h-(--ph) phone:w-(--pw) phone:px-0 transition-[background-color,box-shadow,scale] duration-200 motion-reduce:transition-none"
           :class="[STATUS[t.status].top, t.status === 'free' && 'cursor-pointer hover:scale-105']"
-          :style="{ left: `${t.x}%`, top: `${t.y}%`, width: `${t.w}%`, height: `${t.h}%` }"
+          :style="place(t, t.p)"
           :aria-label="`${t.name}, ${t.zone}, мест: ${t.seats}, ${STATUS[t.status].label}${t.reserved_at ? ` с ${t.reserved_at}` : ''}`"
           :title="t.status === 'free' ? 'Добавить в заявку' : undefined"
           @click="t.status === 'free' && emit('pick', { number: t.number, name: t.name, seats: t.seats })"
         >
           <span class="inline-flex items-center gap-1.5 leading-none">
             <b class="font-display text-[1.2rem] leading-none" :class="t.title && 'uppercase'">{{ t.title ?? t.number }}</b>
-            <span class="inline-flex items-center gap-0.5 text-[.68rem] opacity-75"><UIcon name="i-lucide-users" class="size-3" />{{ t.seats }}</span>
+            <span class="inline-flex items-center gap-0.5 text-[.68rem] opacity-75"><UIcon name="i-lucide-users" class="size-3 max-[360px]:hidden" />{{ t.seats }}</span>
             <UIcon v-if="t.tv" name="i-lucide-tv" class="size-3 opacity-75" />
           </span>
-          <span class="mt-0.5 text-[.68rem] leading-none font-semibold whitespace-nowrap" :class="STATUS[t.status].pill">
+          <span class="mt-0.5 text-[.68rem] leading-none font-semibold whitespace-nowrap phone:text-[.62rem]" :class="STATUS[t.status].pill">
             {{ t.status === 'reserved' && t.reserved_at ? `бронь с ${t.reserved_at}` : STATUS[t.status].label }}
           </span>
         </component>
@@ -145,7 +151,7 @@ onBeforeUnmount(() => clearInterval(timer))
     </div>
 
     <div class="relative mt-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 text-[.85rem] text-mist">
-      <span class="inline-flex items-center gap-2"><UIcon name="i-lucide-mouse-pointer-click" class="size-4 text-live" />Нажмите на свободный стол — добавим его в заявку<span class="hidden phone:inline">. Схема листается вбок</span></span>
+      <span class="inline-flex items-center gap-2"><UIcon name="i-lucide-mouse-pointer-click" class="size-4 text-live" />Нажмите на свободный стол — добавим его в заявку</span>
       <span class="inline-flex items-center gap-1.5">
         <UIcon name="i-lucide-refresh-cw" class="size-3.5" />обновлено в {{ data!.updatedAt }}<template v-if="data!.stale"> · касса временно не отвечает</template>
       </span>
