@@ -5,6 +5,10 @@ const site = useSiteConfig()
 const title = 'Шах Lounge — кофе-бар и кальянная в Махачкале'
 const ogImage = `${site.url}/og.jpg`
 
+// canonical: одна и та же страница не должна считаться двумя адресами (с www и без, со слешем и без)
+const canonical = `${site.url.replace(/\/+$/, '')}/`
+useHead({ link: [{ rel: 'canonical', href: canonical }] })
+
 useSeoMeta({
   title,
   description: venue.description,

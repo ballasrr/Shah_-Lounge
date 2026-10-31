@@ -3,7 +3,8 @@ const siteUrl = process.env.NUXT_SITE_URL || 'https://shah-lounge.duckdns.org'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
+  // панель разработчика нужна только при npm run dev, в собранный сайт её код не попадает
+  devtools: { enabled: process.env.NODE_ENV !== 'production' },
 
   modules: ['@nuxt/ui', '@nuxt/image', '@nuxtjs/sitemap', '@nuxtjs/robots', 'nuxt-schema-org'],
 
