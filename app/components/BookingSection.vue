@@ -9,11 +9,15 @@ const card = 'min-w-0 rounded-card border border-line bg-panel p-[clamp(22px,4vw
 const times: string[] = []
 for (let h = 12; h <= 23; h++) for (const m of ['00', '30']) times.push(`${String(h).padStart(2, '0')}:${m}`)
 
-const form = reactive({ name: '', date: '', time: '20:00', guests: 4, note: '' })
+const form = reactive({ name: '', date: '', time: '20:00', guests: 4, note: '', table: '' })
+
+// самый ранний день для брони — сегодня по Махачкале
+const today = ref('')
 
 onMounted(() => {
   // сегодняшняя дата по Махачкале
-  form.date = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Moscow' }).format(new Date())
+  today.value = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Moscow' }).format(new Date())
+  form.date = today.value
 })
 
 const waLink = computed(() => {
@@ -27,14 +31,15 @@ const waLink = computed(() => {
     `Время: ${form.time}`,
     `Гостей: ${form.guests}`
   ]
+  if (form.table) lines.push(`Стол: ${form.table}`)
   if (form.note.trim()) lines.push(`Пожелания: ${form.note.trim()}`)
   return `https://wa.me/${venue.phone.whatsapp}?text=${encodeURIComponent(lines.join('\n'))}`
 })
 
-// гость выбрал свободный стол на схеме — подставляем его в заявку
+// гость выбрал свободный стол на схеме — подставляем его в заявку, не трогая пожелания
 const formEl = ref<HTMLFormElement>()
 function pickTable(t: { name: string; seats: number }) {
-  form.note = t.name
+  form.table = t.name
   if (form.guests > t.seats) form.guests = t.seats
   formEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   toast.add({ title: `${t.name} добавлен в заявку`, icon: 'i-lucide-check' })
@@ -87,7 +92,7 @@ async function copyPhone() {
             <UInput v-model="form.name" placeholder="Как к вам обращаться" autocomplete="name" size="lg" class="w-full" />
           </UFormField>
           <UFormField label="Дата">
-            <UInput v-model="form.date" type="date" size="lg" class="w-full" />
+            <UInput v-model="form.date" type="date" :min="today" size="lg" class="w-full" />
           </UFormField>
           <UFormField label="Время">
             <USelect v-model="form.time" :items="times" size="lg" class="w-full" />
@@ -98,6 +103,9 @@ async function copyPhone() {
           <UFormField label="Пожелания">
             <UInput v-model="form.note" placeholder="День рождения, у окна…" size="lg" class="w-full" />
           </UFormField>
+          <p v-if="form.table" class="col-span-full m-0 text-[.88rem] text-mist">
+            Выбран стол: <b class="text-cream">{{ form.table }}</b>
+          </p>
           <UButton :to="waLink" target="_blank" size="xl" block class="col-span-full" icon="i-simple-icons-whatsapp" label="Отправить заявку в WhatsApp" />
         </form>
       </div>
