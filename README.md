@@ -70,6 +70,8 @@ sudo bash /var/www/shah/deploy/deploy.sh shah-lounge.duckdns.org
 
 Скрипт ставит Node.js 22, nginx и certbot, собирает сайт, настраивает домен и получает бесплатный HTTPS-сертификат. Если на сервере меньше 2 ГБ памяти, он создаёт файл подкачки, чтобы сборка не упала.
 
+Заодно он поднимает бэкенд: создаёт `backend/.venv`, ставит зависимости и включает systemd-службу `shah-api` (uvicorn на `127.0.0.1:8000`), а nginx передаёт ей `/api/`. Проверить: `curl https://<домен>/api/tables` и `systemctl status shah-api`. Ключ iiko кладётся в `backend/.env` уже после первого запуска — служба перезапускается командой `systemctl restart shah-api`.
+
 ## Обновление
 
 После `git push` с изменениями:

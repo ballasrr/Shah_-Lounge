@@ -14,9 +14,9 @@ PUBLIC="$APP_DIR/.output/public"
 [ "$(id -u)" -eq 0 ] || { echo "Запусти через sudo"; exit 1; }
 cd "$APP_DIR"
 
-echo "==> Системные пакеты: nginx, certbot, curl"
+echo "==> Системные пакеты: nginx, certbot, curl, python3"
 apt-get update -y
-DEBIAN_FRONTEND=noninteractive apt-get install -y nginx certbot python3-certbot-nginx curl ca-certificates
+DEBIAN_FRONTEND=noninteractive apt-get install -y nginx certbot python3-certbot-nginx curl ca-certificates python3-venv python3-pip
 
 echo "==> Node.js 22"
 if ! command -v node >/dev/null || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 20 ]; then
@@ -41,6 +41,39 @@ npm ci --no-audit --no-fund
 NUXT_SITE_URL="https://$DOMAIN" npm run generate
 [ -f "$PUBLIC/index.html" ] || { echo "Сборка не создала $PUBLIC/index.html"; exit 1; }
 
+echo "==> Бэкенд API: venv, зависимости и systemd-служба"
+# Сайт статический, а статусы столов отдаёт FastAPI из backend/. В nginx ниже /api/ уходит на него.
+[ -d "$APP_DIR/backend/.venv" ] || python3 -m venv "$APP_DIR/backend/.venv"
+"$APP_DIR/backend/.venv/bin/pip" install --no-cache-dir -r "$APP_DIR/backend/requirements.txt"
+
+cat > /etc/systemd/system/shah-api.service <<EOF
+[Unit]
+Description=Шах Lounge API (FastAPI)
+After=network.target
+
+[Service]
+WorkingDirectory=$APP_DIR/backend
+# ключ iiko лежит здесь; нет файла — сервер отдаёт тестовые данные
+EnvironmentFile=-$APP_DIR/backend/.env
+ExecStart=$APP_DIR/backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
+EOF
+chown -R www-data:www-data "$APP_DIR/backend"
+systemctl daemon-reload
+systemctl enable --now shah-api
+systemctl restart shah-api
+for _ in $(seq 1 20); do
+  curl -fsS http://127.0.0.1:8000/api/health >/dev/null && break
+  sleep 1
+done
+curl -fsS http://127.0.0.1:8000/api/health >/dev/null \
+  || { echo "API не отвечает на 127.0.0.1:8000 — смотри journalctl -u shah-api"; exit 1; }
+
 echo "==> Проверяю, не занят ли порт 80 другой программой"
 if ss -ltnp | grep -E ':80\s' | grep -vq nginx; then
   ss -ltnp | grep -E ':80\s'
@@ -56,6 +89,19 @@ server {
 
     root $PUBLIC;
     index index.html;
+
+    # статусы столов: сайт статический, а /api отдаёт FastAPI на 127.0.0.1:8000
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
     location / {
         try_files \$uri \$uri/ \$uri/index.html =404;
